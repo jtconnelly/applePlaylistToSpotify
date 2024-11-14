@@ -1,9 +1,20 @@
-const http = require("http")
-var SpotifyWebAPI = require("spotify-web-api-node")
+const express = require("express");
+var SpotifyWebAPI = require("spotify-web-api-node");
 const {readFiles} = require("./readFiles");
 
 var playListDict = {}
 readFiles("./playliststocopy/", playListDict);
+
+const app = express();
+const port = 4000;
+
+app.get('/', (req, res) => {
+    res.send('Something else');
+});
+
+app.listen(port, () => {
+    console.log(`Server listening on port ${port}`);
+});
 
 // console.log(playListDict);
 var spotify = new SpotifyWebAPI();
