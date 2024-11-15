@@ -1,5 +1,5 @@
 {
-  "name": "AppleToSpotify",
+  "name": "apple-to-spotify",
   "version": "1.0.0",
   "description": "Given a generated list of songs from a playlist on Apple Music, create the same playlist on Spotify",
   "main": "playlistToSpotify.js",
@@ -8,6 +8,7 @@
   },
   "dependencies": {
     "express": "^4.21.1",
+    "request": "^2.88.2",
     "spotify-web-api-node": "^5.0.2"
   },
   "author": "James Connelly",
