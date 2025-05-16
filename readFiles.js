@@ -12,7 +12,18 @@ function readFiles(dirName, playlistDict)
                 continue;
             }
             const data = fs.readFileSync(dirName + file, "utf-8");
-            playlistDict[file] = data;
+            playlistDict[file] = []
+            var songs = data.split("\n");
+            for (var song of songs)
+            {
+                // console.log("Data response: " + playlistData.body);
+                var artist = song.split(",").slice(-1);
+                var title = song.split(",").slice(0,-1);
+                var obj = new Object();
+                obj.artist = artist;
+                obj.name = title;
+                playlistDict[file].push(obj);
+            }
         }
         catch(err)
         {

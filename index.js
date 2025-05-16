@@ -5,7 +5,11 @@ require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const SpotifyWebApi = require('spotify-web-api-node');
+const fs = require('fs');
+const {readFiles} = require("./readFiles");
 
+var playListDict = {}
+readFiles("./playliststocopy/", playListDict);
 // Initialize an Express application.
 const app = express();
 // Define the port number on which the server will listen.
@@ -18,11 +22,15 @@ const spotifyApi = new SpotifyWebApi({
     redirectUri: process.env.REDIRECT_URL
 });
 
-
-const {readFiles} = require("./readFiles");
-
-var playListDict = {}
-readFiles("./playliststocopy/", playListDict);
+// Function to search tracks
+async function getTrackId(artist, title) {
+  try {
+    const data = await spotifyApi.searchTracks(`artist:${artist} track:${title}`, {limit : 1});
+    return data.body.tracks.items.length > 0 ? data.body.tracks.items[0].id : null;
+  } catch (error) {
+    console.error('Error searching track:', error);
+  }
+}
 
 async function resolveTracks(playlistKey)
 {
@@ -43,6 +51,28 @@ async function resolveTracks(playlistKey)
 }
 
 var tracksDict = {};
+
+async function initTracksDict()
+{
+    for (var key in playListDict)
+    {
+        trackIds = [];
+        for (var song of playListDict[key])
+        {
+            const trackId = await getTrackId(song.artist, song.name);
+            if (trackId) {
+                trackIds.push(trackId);
+            } else {
+                console.error(`Track not found: ${song.artist} - ${song.name}`);
+            }
+        }
+        
+        //const trackIds = await Promise.all(playListDict[key].map(song => getTrackId(song.artist, song.name)));
+        tracksDict[key] = trackIds.filter(id => id); // Filter out null values
+    }
+
+}
+
 app.get("/", (req, res) => {
     res.redirect("/login");
 });
@@ -79,21 +109,11 @@ app.get('/callback', (req, res) => {
         // Set the access token and refresh token on the Spotify API object.
         spotifyApi.setAccessToken(accessToken);
         spotifyApi.setRefreshToken(refreshToken);
-        for (var key in playListDict){
-            tracksDict[key] = await resolveTracks(key);
-
-            //way that "works but async is ruining it"
-            // resolveTracks(key).then(
-            //     function(value) {tracksDict[key] = value;}
-            // );
-        }
 
         // Logging tokens can be a security risk; this should be avoided in production.
         console.log('The access token is ' + accessToken);
         console.log('The refresh token is ' + refreshToken);
 
-        // Send a success message to the user.
-        res.sendFile("./spotifyApp.html", options);
 
         // Refresh the access token periodically before it expires.
         setInterval(async () => {
@@ -101,10 +121,43 @@ app.get('/callback', (req, res) => {
             const accessTokenRefreshed = data.body['access_token'];
             spotifyApi.setAccessToken(accessTokenRefreshed);
         }, expiresIn / 2 * 1000); // Refresh halfway before expiration.
+
+        await initTracksDict();
+        for (var key in tracksDict)
+        {
+            try
+            {
+                const playlistData = await spotifyApi.createPlaylist(key, {"description" : "copied from Apple Playlist using playlistToSpotify", "public" : false});
+                console.log("Successfully created playlist " + key);
+                const id = playlistData.body.id;
+                const batches = await chunkArray(tracksDict[key], 50);
+                for (const batch of batches)
+                {
+                    try
+                    {
+                        await spotifyApi.addTracksToPlaylist(id, tracksDict[key]);
+                    }
+                    catch (error)
+                    {
+                        console.error("Error adding tracks to playlist: ", error);
+                    }
+                }
+            }
+            catch (error)
+            {
+                console.error("Error creating playlist: ", error);
+            }
+        }
+
+        res.redirect("/success");
     }).catch(error => {
         console.error('Error getting Tokens:', error);
         res.send('Error getting tokens');
     });
+});
+
+app.get("/success", (req, res) => {
+    res.send("Finished copying all playlists to Spotify");
 });
 
 // Route handler for the search endpoint.
@@ -141,7 +194,7 @@ app.get('/play', (req, res) => {
 app.get("/populate", (req, res) => {
     const { id, key } = req.query;
     var trackChunks = [];
-    const chunkSize = 99;
+    const chunkSize = 50;
     for (let i = 0; i < tracksDict[key].length; i += chunkSize){
         trackChunks.push(tracksDict[key].slice(i, i + chunkSize));
     }
