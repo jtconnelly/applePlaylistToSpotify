@@ -2,3 +2,4 @@ node_modules/
 playliststocopy.zip
 package-lock.json
 *.env
+.vscode/

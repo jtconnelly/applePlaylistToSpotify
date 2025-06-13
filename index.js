@@ -114,6 +114,7 @@ app.get('/callback', (req, res) => {
         console.log('The access token is ' + accessToken);
         console.log('The refresh token is ' + refreshToken);
 
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait for a second to ensure the tokens are set.
 
         // Refresh the access token periodically before it expires.
         setInterval(async () => {
