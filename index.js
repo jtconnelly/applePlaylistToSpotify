@@ -128,6 +128,17 @@ app.get('/callback', (req, res) => {
         {
             try
             {
+                spotifyApi.getUserPlaylists({ limit: 50 }).then(function(data) {
+                    var playlists = data.body.items;
+                    for (var i = 0; i < playlists.length; i++) {
+                        if (playlists[i].name === key.split(".")[0]) {
+                            console.log("Playlist " + key + " already exists, skipping creation.");
+                            return;
+                        }
+                    }
+                }, function(err) {
+                    console.error(err);
+                });
                 const playlistData = await spotifyApi.createPlaylist(key, {"description" : "copied from Apple Playlist using playlistToSpotify", "public" : false});
                 console.log("Successfully created playlist " + key);
                 const id = playlistData.body.id;
