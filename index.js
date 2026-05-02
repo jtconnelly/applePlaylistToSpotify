@@ -32,8 +32,7 @@ async function getTrackId(artist, title) {
   }
 }
 
-async function resolveTracks(playlistKey)
-{
+async function resolveTracks(playlistKey){
     tracks = [];
     var songs = playListDict[playlistKey].split("\n");
     for (var song of songs)
@@ -52,8 +51,7 @@ async function resolveTracks(playlistKey)
 
 var tracksDict = {};
 
-async function initTracksDict()
-{
+async function initTracksDict(){
     for (var key in playListDict)
     {
         trackIds = [];
