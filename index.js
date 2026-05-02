@@ -26,7 +26,7 @@ const spotifyApi = new SpotifyWebApi({
 async function getTrackId(artist, title) {
   try {
     const data = await spotifyApi.searchTracks(`artist:${artist} track:${title}`, {limit : 1});
-    return data.body.tracks.items.length > 0 ? data.body.tracks.items[0].id : null;
+    return data.body.tracks.items.length > 0 ? data.body.tracks.items[0].uri : null;
   } catch (error) {
     console.error('Error searching track:', error);
   }
@@ -59,6 +59,7 @@ async function initTracksDict(){
         {
             const trackId = await getTrackId(song.artist, song.name);
             if (trackId) {
+                console.log(`Found track: ${song.artist} - ${song.name} (ID: ${trackId})`);
                 trackIds.push(trackId);
             } else {
                 console.error(`Track not found: ${song.artist} - ${song.name}`);
@@ -67,8 +68,9 @@ async function initTracksDict(){
         
         //const trackIds = await Promise.all(playListDict[key].map(song => getTrackId(song.artist, song.name)));
         tracksDict[key] = trackIds.filter(id => id); // Filter out null values
+        console.log(`Resolved ${tracksDict[key].length} tracks for playlist ${key}`);
     }
-
+    console.log("Finished resolving tracks for all playlists.");
 }
 
 app.get("/", (req, res) => {
@@ -122,6 +124,7 @@ app.get('/callback', (req, res) => {
         }, expiresIn / 2 * 1000); // Refresh halfway before expiration.
 
         await initTracksDict();
+        console.log("Finished initializing tracks dictionary.");
         for (var key in tracksDict)
         {
             try
@@ -140,12 +143,16 @@ app.get('/callback', (req, res) => {
                 const playlistData = await spotifyApi.createPlaylist(key, {"description" : "copied from Apple Playlist using playlistToSpotify", "public" : false});
                 console.log("Successfully created playlist " + key);
                 const id = playlistData.body.id;
-                const batches = await chunkArray(tracksDict[key], 50);
-                for (const batch of batches)
+                //const batches = await chunkArray(tracksDict[key], 50);
+                var sliceSize = 50;
+                for (var i = 0; i < tracksDict[key].length;i+=sliceSize)
                 {
+                    var batch = tracksDict[key].slice(i, i+sliceSize);
                     try
                     {
-                        await spotifyApi.addTracksToPlaylist(id, tracksDict[key]);
+                        console.log("Adding batch of tracks to playlist " + key);
+                        await spotifyApi.addTracksToPlaylist(id, batch);
+                        console.log("Successfully added batch of tracks to playlist " + key);
                     }
                     catch (error)
                     {
