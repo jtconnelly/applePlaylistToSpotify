@@ -123,7 +123,7 @@ Could Have Been County,The 2 Johnnies
 I'm Grand,The 2 Johnnies
 Beer for Breakfast,Zach Top
 Beer, Beer, Beer,The Irish Travelers
-PresentationBoarder,The Saw Doctors
+Presentation Boarder,The Saw Doctors
 Tomorrow Comes a Day too Soon,Flogging Molly
 The Irish Rover,The Pogues
 Caledonia,The Kilkennys
@@ -139,12 +139,12 @@ Back Home In Derry,Liam McGrandles
 The Last Shanty,Patrick Feeney
 Raggle-Taggle Gypsy,Derek Ryan
 Locklin's Bar,The Whistlin' Donkeys
-The Boys of Kilmichael.,Derek Warfield & The Young Wolfe Tones,
+The Boys of Kilmichael.,Derek Warfield & The Young Wolfe Tones
 The Way I Am,The Tumbling Paddies
-Oro Oro, Meadhbh Walsh
+Oro Oro,Meadhbh Walsh
 Leaving Tipperary,Olivia Douglas
 The Men Behind the Wire,The Wolfe Tones
-All Around the Town,The Rattling King
+All Around the Town,The Rattling Kind
 Going out for One,gearoid mccarthy
 American Land,Patrick Feeney
 Oro Se Do Beatha Bhaile,Derek Warfield & The Young Wolfe Tones
